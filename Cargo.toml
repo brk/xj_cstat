@@ -1,0 +1,10 @@
+[package]
+name = "xj_cstat"
+version = "0.1.0"
+edition = "2024"
+description = "Safe Unix stat metadata queries using NUL-terminated byte paths"
+
+[dependencies]
+errno = "0.3"
+libc = "0.2"
+xj_zstr = { path = "../xj_zstr" }
