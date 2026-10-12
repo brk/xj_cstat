@@ -6,9 +6,10 @@
 //! pointer or setting `errno`. All fields come from
 //! [`std::os::unix::fs::MetadataExt`].
 //!
-//! Path arguments borrow [`ZStr`]. Only bytes before its first NUL are used;
+//! Path arguments accept [`ByteView`], including strings, byte slices, Unix
+//! paths, and [`ZStr`]. Only bytes before the first NUL or view end are used;
 //! non-UTF-8 paths are supported without conversion or allocation.
-//! Owned [`ZString`] arguments coerce to `&ZStr`. The [`c`] module provides
+//! The [`c`] module provides
 //! output parameters of type `&mut libc::stat`, integer results, and `errno`.
 //!
 //! ```no_run
@@ -38,6 +39,8 @@ use std::os::unix::fs::MetadataExt;
 pub mod c;
 mod mode;
 pub use mode::*;
+/// Shared borrowed byte inputs, including Unix OS paths.
+pub use xj_bytes::ByteView;
 pub use xj_zstr::{ZStr, ZString};
 
 /// A Unix timestamp, with seconds relative to the Unix epoch.
@@ -151,16 +154,17 @@ impl From<Metadata> for Stat {
 ///
 /// Uses [`fs::metadata`]. OS errors are returned unchanged. An empty effective
 /// path is an error; it is not interpreted as the current directory.
-pub fn stat(path: &ZStr) -> io::Result<Stat> {
-    fs::metadata(OsStr::from_bytes(path.as_bytes())).map(Stat::from)
+pub fn stat<B: ByteView + ?Sized>(path: &B) -> io::Result<Stat> {
+    fs::metadata(OsStr::from_bytes(xj_bytes::c_bytes(path.view_bytes()))).map(Stat::from)
 }
 
 /// Queries attributes of `path` without following the final symbolic link.
 ///
 /// Uses [`fs::symlink_metadata`]. A dangling symbolic link can be inspected;
 /// symbolic links in intermediate path components are still followed.
-pub fn lstat(path: &ZStr) -> io::Result<Stat> {
-    fs::symlink_metadata(OsStr::from_bytes(path.as_bytes())).map(Stat::from)
+pub fn lstat<B: ByteView + ?Sized>(path: &B) -> io::Result<Stat> {
+    fs::symlink_metadata(OsStr::from_bytes(xj_bytes::c_bytes(path.view_bytes())))
+        .map(Stat::from)
 }
 
 /// Queries an open file without resolving its path or changing its position.

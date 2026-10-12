@@ -2,7 +2,7 @@
 //!
 //! These functions take an initialized `&mut libc::stat` (or, where available,
 //! `&mut libc::stat64`), return `0` on success, and return `-1` with thread-local
-//! `errno` set on failure. Path queries borrow [`ZStr`] instead of taking raw
+//! `errno` set on failure. Path queries accept [`ByteView`] instead of taking raw
 //! pointers. [`fstat_f`] borrows a [`File`], while [`fstat`] accepts a C integer
 //! file descriptor. The corresponding large-file functions use `64` suffixes.
 //!
@@ -35,7 +35,7 @@
 use std::fs::File;
 use std::io;
 
-use crate::{Stat, ZStr};
+use crate::{ByteView, Stat};
 
 // Expose the mode constants and predicates alongside the C-style queries.
 pub use crate::mode::*;
@@ -44,7 +44,7 @@ pub use crate::mode::*;
 ///
 /// Returns `0` on success or `-1` with `errno` set on failure. Failure leaves
 /// `buf` unchanged. Only fields provided by `MetadataExt` are updated.
-pub fn stat(path: &ZStr, buf: &mut libc::stat) -> libc::c_int {
+pub fn stat<B: ByteView + ?Sized>(path: &B, buf: &mut libc::stat) -> libc::c_int {
     finish(crate::stat(path), buf)
 }
 
@@ -52,7 +52,7 @@ pub fn stat(path: &ZStr, buf: &mut libc::stat) -> libc::c_int {
 ///
 /// Returns `0` on success or `-1` with `errno` set on failure. Failure leaves
 /// `buf` unchanged. Only fields provided by `MetadataExt` are updated.
-pub fn lstat(path: &ZStr, buf: &mut libc::stat) -> libc::c_int {
+pub fn lstat<B: ByteView + ?Sized>(path: &B, buf: &mut libc::stat) -> libc::c_int {
     finish(crate::lstat(path), buf)
 }
 
@@ -90,7 +90,7 @@ pub fn fstat(fd: libc::c_int, buf: &mut libc::stat) -> libc::c_int {
 /// `buf` unchanged. This interface is available on GNU/Linux targets that
 /// expose `libc::stat64`.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-pub fn stat64(path: &ZStr, buf: &mut libc::stat64) -> libc::c_int {
+pub fn stat64<B: ByteView + ?Sized>(path: &B, buf: &mut libc::stat64) -> libc::c_int {
     finish64(crate::stat(path), buf)
 }
 
@@ -100,7 +100,7 @@ pub fn stat64(path: &ZStr, buf: &mut libc::stat64) -> libc::c_int {
 /// `buf` unchanged. This interface is available on GNU/Linux targets that
 /// expose `libc::stat64`.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-pub fn lstat64(path: &ZStr, buf: &mut libc::stat64) -> libc::c_int {
+pub fn lstat64<B: ByteView + ?Sized>(path: &B, buf: &mut libc::stat64) -> libc::c_int {
     finish64(crate::lstat(path), buf)
 }
 

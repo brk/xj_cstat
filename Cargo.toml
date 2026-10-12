@@ -2,9 +2,12 @@
 name = "xj_cstat"
 version = "0.1.0"
 edition = "2024"
-description = "Safe Unix stat metadata queries using NUL-terminated byte paths"
+description = "Safe Unix stat metadata queries using borrowed byte paths"
+license = "MIT"
+repository = "https://github.com/brk/xj_cstat"
 
 [dependencies]
+xj_bytes = { version = "0.1.0", path = "../xj_bytes", features = ["std"] }
 errno = "0.3"
 libc = "0.2"
-xj_zstr = { path = "../xj_zstr" }
+xj_zstr = { version = "0.1.0", path = "../xj_zstr" }

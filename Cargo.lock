@@ -34,14 +34,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "xj_bytes"
+version = "0.1.0"
+
+[[package]]
 name = "xj_cstat"
 version = "0.1.0"
 dependencies = [
  "errno",
  "libc",
+ "xj_bytes",
  "xj_zstr",
 ]
 
 [[package]]
 name = "xj_zstr"
 version = "0.1.0"
+dependencies = [
+ "xj_bytes",
+]
